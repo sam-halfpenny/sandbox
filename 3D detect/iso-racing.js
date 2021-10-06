@@ -212,11 +212,12 @@ function dot_product(vector1,vector2){
     return vector1.x*vector2.x+vector1.y*vector2.y+vector1.z*vector2.z
 }
 function cross_product(a,b){
-    return {
-        x:a.y*b.z-a.z-b.y,
-        y:a.z*b.x-a.x-b.z,
-        z:a.x*b.y-a.y-b.x
+    let final={
+        x:a.y*b.z-a.z*b.y,
+        y:a.x*b.z-a.z*b.x,
+        z:a.x*b.y-a.y*b.x
     }
+    return final
 }
 function iso_map(pos){
     let isopos

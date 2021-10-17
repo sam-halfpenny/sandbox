@@ -197,7 +197,7 @@ class dodger{
     }
 }
 const sunang=0
-const lightsourcevector={x:0,y:0,z:1}
+const lightsourcevector={x:0,y:1,z:0}
 const GAME_SIZE=600
 const G=GAME_SIZE/2
 const epicenter={x:G,y:G}
@@ -328,7 +328,7 @@ function Draw(points){
     for(var i=0;i<Math.floor(lindiffhl.y);i++){
         linpointss.push({x:hp.x+i*vectorhl,y:i+hp.y,z:hp.z+i*dvectorhl})
     }
-    for(var i=0;i<Math.floor(lindiffhm.y);i++){
+    for(var i=0;i<=Math.floor(lindiffhm.y);i++){
         linpointsl.push({x:hp.x+i*vectorhm,y:i+hp.y,z:hp.z+i*dvectorhm})
     }
     for(var i=0;i<Math.floor(lindiffml.y)+1;i++){
@@ -487,9 +487,6 @@ function shader(shpcntr,pnts,counter){
     let v2=unit_vector(pndiff3D(points[2],points[0]))
     let inner=unit_vector(pndiff3D(shapecenter,points[0]))
     let planevector=unit_vector(cross_product(v1,v2))
-    if(counter%4==0){
-        console.log(dot_product(planevector,v1))
-    }
     if(dot_product(planevector,inner)>0){
         planevector={
             x:-planevector.x,
@@ -536,7 +533,7 @@ function dot_product(vector1,vector2){
 function cross_product(a,b){
     let final={
         x:a.y*b.z-a.z*b.y,
-        y:a.x*b.z-a.z*b.x,
+        y:a.z*b.x-a.x*b.z,
         z:a.x*b.y-a.y*b.x
     }
     return final

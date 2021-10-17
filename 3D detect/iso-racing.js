@@ -214,7 +214,7 @@ function dot_product(vector1,vector2){
 function cross_product(a,b){
     let final={
         x:a.y*b.z-a.z*b.y,
-        y:a.x*b.z-a.z*b.x,
+        y:a.z*b.x-a.x*b.z,
         z:a.x*b.y-a.y*b.x
     }
     return final

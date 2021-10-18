@@ -99,7 +99,7 @@ class dodger{
     constructor(gamesize){
         this.gamesize=gamesize
         this.position={x:G,y:G,z:G}
-        this.size=300
+        this.size=200
         this.speed={
             x:0,
             y:0,
@@ -217,7 +217,7 @@ class dodger{
     }
 }
 const sunang=0
-const ambientlightfactor=1/5
+const ambientlightfactor=1/3
 const lightsourcevector={x:0,y:1,z:0}
 const GAME_SIZE=600
 const G=GAME_SIZE/2
@@ -387,15 +387,50 @@ function pndiff3D(p1,p2){
     return dist
 }
 function JTD(p1,p2){
-    if(pndiff(p1,p2).x>=0){
-        angle=pnanglefinder(p1,p2)+180
+    ctx.fillStyle='#0f0'
+    let hp
+    let lp
+    if(p1.y<p2.y){
+        hp=p1
+        lp=p2
     }
     else{
-        angle=pnanglefinder(p1,p2)
+        hp=p2
+        lp=p1
     }
-    
-    dist=Math.sqrt(Math.pow(diff(p1,p2).x,2)+Math.pow(diff(p1,p2).y,2))
-    drawline(p1,angle,dist)
+    let lindiffhl=pndiff3D(lp,hp)
+    let vectorhl=lindiffhl.x/lindiffhl.y
+    let dvectorhl=lindiffhl.z/lindiffhl.y
+    for(var i=0;i<lindiffhl.y;i++){
+        if(pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)].depth>i*dvectorhl+hp.z || pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)].filled==false){
+            values={filled:true,depth:hp.z+dvectorhl*i}
+            pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)]=values
+            if(i==lindiffhl.y-1){
+                ctx.fillRect(Math.floor(i*vectorhl)+hp.x,hp.y+i,2,2)
+            }
+            else{
+                ctx.fillRect(Math.floor(i*vectorhl)+hp.x,hp.y+i,2,2)
+            }
+        }
+    }
+    if(p1.x<p2.x){
+        hp=p1
+        lp=p2
+    }
+    else{
+        hp=p2
+        lp=p1
+    }
+    lindiffhl=pndiff3D(lp,hp)
+    vectorhl=lindiffhl.y/lindiffhl.x
+    dvectorhl=lindiffhl.z/lindiffhl.x
+    for(var i=0;i<lindiffhl.x;i++){
+        if(pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)].depth>i*dvectorhl+hp.z || pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)].filled==false){
+            values={filled:true,depth:hp.z+dvectorhl*i}
+            pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)]=values
+            ctx.fillRect(hp.x+i,Math.floor(i*vectorhl)+hp.y,2,2)
+        }
+    }
 }
 function scale_point(point,scale){
     let Matrix=[
@@ -641,7 +676,7 @@ function gameloop(timestamp) {
         }
     }
     dodger1.draw(ctx)
-    // Bdraw3D(borderpoints,faces)
+    Bdraw3D(borderpoints,faces)
     rotationfactor+=3
     tiltfactor+=3
     if(!dead){

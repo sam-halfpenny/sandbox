@@ -1,0 +1,79 @@
+//ICOSAHEDRON
+this.relpoints=[
+    {x:0,y:1,z:Math.phi},
+    {x:0,y:-1,z:Math.phi},
+    {x:0,y:1,z:-Math.phi},
+    {x:0,y:-1,z:-Math.phi},
+    {x:1,y:Math.phi,z:0},
+    {x:-1,y:Math.phi,z:0},
+    {x:1,y:-Math.phi,z:0},
+    {x:-1,y:-Math.phi,z:0},
+    {x:Math.phi,y:0,z:1},
+    {x:Math.phi,y:0,z:-1},
+    {x:-Math.phi,y:0,z:1},
+    {x:-Math.phi,y:0,z:-1}
+]
+this.faces=[
+    [0,1,8],
+    [0,1,10],
+    [2,3,9],
+    [2,3,11],
+    [8,9,4],
+    [8,9,6],
+    [10,11,5],
+    [10,11,7],
+    [4,5,0],
+    [4,5,2],
+    [6,7,1],
+    [6,7,3],
+    [0,8,4],
+    [1,8,6],
+    [0,10,5],
+    [1,10,7],
+    [2,9,4],
+    [3,9,6],
+    [2,11,5],
+    [2,11,7]
+]
+//CUBE
+this.relpoints=[
+    {x:this.size/2,y:this.size/2,z:this.size/2},
+    {x:-this.size/2,y:this.size/2,z:this.size/2},
+    {x:this.size/2,y:-this.size/2,z:this.size/2},
+    {x:-this.size/2,y:-this.size/2,z:this.size/2},
+    {x:this.size/2,y:this.size/2,z:-this.size/2},
+    {x:-this.size/2,y:this.size/2,z:-this.size/2},
+    {x:this.size/2,y:-this.size/2,z:-this.size/2},
+    {x:-this.size/2,y:-this.size/2,z:-this.size/2}
+]
+this.faces=[
+    [0,1,3],
+    [0,2,3],
+    [4,5,7],
+    [4,6,7],
+    [2,3,7],
+    [2,6,7],
+    [1,3,7],
+    [1,5,7],
+    [0,1,5],
+    [0,4,5],
+    [0,2,6],
+    [0,4,6]
+]
+//TETRAHEDRON
+this.relpoints=[
+    {x:this.size/2,y:this.size/2,z:this.size/2},
+    {x:-this.size/2,y:this.size/2,z:this.size/2},
+    {x:this.size/2,y:-this.size/2,z:this.size/2},
+    {x:-this.size/2,y:-this.size/2,z:this.size/2},
+    {x:this.size/2,y:this.size/2,z:-this.size/2},
+    {x:-this.size/2,y:this.size/2,z:-this.size/2},
+    {x:this.size/2,y:-this.size/2,z:-this.size/2},
+    {x:-this.size/2,y:-this.size/2,z:-this.size/2}
+]
+this.faces=[
+    [0,3,5],
+    [0,3,6],
+    [5,6,0],
+    [5,6,3]
+]

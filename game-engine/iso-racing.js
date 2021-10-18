@@ -5,6 +5,7 @@ window.addEventListener("keydown", function(e) {
     }
 }, false);
 balls=[]
+const phi=(1+Math.sqrt(5))/2
 class Handler{
     constructor(dodger) {
         document.addEventListener("keydown", event=> {
@@ -98,7 +99,7 @@ class dodger{
     constructor(gamesize){
         this.gamesize=gamesize
         this.position={x:G,y:G,z:G}
-        this.size=50
+        this.size=300
         this.speed={
             x:0,
             y:0,
@@ -106,31 +107,50 @@ class dodger{
         }
         this.maxspeed=10
         this.relpoints=[
-            {x:this.size/2,y:this.size/2,z:this.size/2},
-            {x:-this.size/2,y:this.size/2,z:this.size/2},
-            {x:this.size/2,y:-this.size/2,z:this.size/2},
-            {x:-this.size/2,y:-this.size/2,z:this.size/2},
-            {x:this.size/2,y:this.size/2,z:-this.size/2},
-            {x:-this.size/2,y:this.size/2,z:-this.size/2},
-            {x:this.size/2,y:-this.size/2,z:-this.size/2},
-            {x:-this.size/2,y:-this.size/2,z:-this.size/2},
+            {x:0,y:this.size,z:this.size*phi},
+            {x:0,y:-this.size,z:this.size*phi},
+            {x:0,y:this.size,z:-this.size*phi},
+            {x:0,y:-this.size,z:-this.size*phi},
+            {x:this.size,y:this.size*phi,z:0},
+            {x:-this.size,y:this.size*phi,z:0},
+            {x:this.size,y:-this.size*phi,z:0},
+            {x:-this.size,y:-this.size*phi,z:0},
+            {x:this.size*phi,y:0,z:this.size},
+            {x:this.size*phi,y:0,z:-this.size},
+            {x:-this.size*phi,y:0,z:this.size},
+            {x:-this.size*phi,y:0,z:-this.size}
         ]
         this.faces=[
-            [0,1,3,2],
-            [4,5,7,6],
-            [2,3,7,6],
-            [1,3,7,5],
-            [0,1,5,4],
-            [0,2,6,4]
+            [0,1,8],
+            [0,1,10],
+            [2,3,9],
+            [2,3,11],
+            [8,9,4],
+            [8,9,6],
+            [10,11,5],
+            [10,11,7],
+            [4,5,0],
+            [4,5,2],
+            [6,7,1],
+            [6,7,3],
+            [0,8,4],
+            [1,8,6],
+            [0,10,5],
+            [1,10,7],
+            [2,9,4],
+            [3,9,6],
+            [2,11,5],
+            [3,11,7]
         ]
         this.points=[]
         var i
         for(i=0;i<this.relpoints.length;i++){
             this.points.push({x:this.position.x+this.relpoints[i].x,y:this.position.y+this.relpoints[i].y,z:this.position.z+this.relpoints[i].z})
         }
+        console.log()
     }
     draw(ctx){
-        Bdraw3D(this.points,this.faces)
+        Draw3D(this.position,this.points,this.faces)
     }
     moveLeft(){
         this.speed.x=-this.maxspeed
@@ -197,6 +217,7 @@ class dodger{
     }
 }
 const sunang=0
+const ambientlightfactor=1/5
 const lightsourcevector={x:0,y:1,z:0}
 const GAME_SIZE=600
 const G=GAME_SIZE/2
@@ -325,16 +346,16 @@ function Draw(points){
     let dvectorlr=0
     let leftpoints=0
     let rightpoints=0
-    for(var i=0;i<Math.floor(lindiffhl.y);i++){
+    for(var i=0;i<=Math.floor(lindiffhl.y);i++){
         linpointss.push({x:hp.x+i*vectorhl,y:i+hp.y,z:hp.z+i*dvectorhl})
     }
     for(var i=0;i<=Math.floor(lindiffhm.y);i++){
         linpointsl.push({x:hp.x+i*vectorhm,y:i+hp.y,z:hp.z+i*dvectorhm})
     }
-    for(var i=0;i<Math.floor(lindiffml.y)+1;i++){
+    for(var i=0;i<=Math.floor(lindiffml.y)+1;i++){
         linpointsl.push({x:mp.x+i*vectorml,y:i+mp.y,z:mp.z+i*dvectorml})
     }
-    if(linpointsl[1].x>linpointss[1].x){
+    if(vectorhm>vectorhl){
         leftpoints=linpointss
         rightpoints=linpointsl
     }
@@ -348,7 +369,7 @@ function Draw(points){
         dvectorlr=lindifflr.z/lindifflr.x
         // ctx.fillRect(Math.floor(leftpoints[i].x),Math.floor(leftpoints[i].y),leftpoints[i].x-leftpoints[i].x,1)
         for(var j=0;j<lindifflr.x;j++){
-            if(pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)].depth<leftpoints[i].z+dvectorlr*j || pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)].filled==false){
+            if(pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)].depth>leftpoints[i].z+dvectorlr*j || pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)].filled==false){
                 //console.log(leftpoints[i].z+dvectorlr*j)
                 values={filled:true,depth:leftpoints[i].z+dvectorlr*j}
                 pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)]=values
@@ -430,6 +451,21 @@ function drawline(origin,ang,length){
         ctx.fillRect(origin.x+pos.x,origin.y+pos.y,2,2)
     }
 }
+function Bdraw3D(points,faces){
+    var isopoints=[]
+    var fpoints=[]
+    for(var i=0;i<points.length;i++){
+        isopoints.push(iso_map(points[i]))
+    }
+    for(i=0;i<faces.length;i++){
+        fpoints=[]
+        for(var j=0;j<faces[i].length;j++){
+            fpoints.push(isopoints[faces[i][j]])
+        }
+        Bdraw(fpoints)
+        
+    }
+}
 function Bdraw(points){
     var i
     for(i=0;i<points.length-1;i++){
@@ -437,7 +473,7 @@ function Bdraw(points){
     }
     JTD(points[points.length-1],points[0])
 }
-function Bdraw3D(shapecenter,points,faces){
+function Draw3D(shapecenter,points,faces){
     var isopoints=[]
     var fpoints=[]
     var rfpoints=[]
@@ -487,18 +523,23 @@ function shader(shpcntr,pnts,counter){
     let v2=unit_vector(pndiff3D(points[2],points[0]))
     let inner=unit_vector(pndiff3D(shapecenter,points[0]))
     let planevector=unit_vector(cross_product(v1,v2))
-    if(dot_product(planevector,inner)>0){
+    if(dot_product(planevector,inner)<0){
         planevector={
             x:-planevector.x,
             y:-planevector.y,
             z:-planevector.z
         }
     }
-    
     colorpercent=(dot_product(planevector,lightsourcevector))
+    ambientlight=(dot_product(planevector,lightsourcevector)/2+1)*ambientlightfactor
     if(colorpercent<0){
         colorpercent=0
     }
+    colorpercent+=ambientlight
+    if(colorpercent>1){
+        colorpercent=0.99
+    }
+    console.log()
     color=letters(basebasher(Math.floor(colorpercent*Math.pow(15,2)),15,2))
     return color
 }
@@ -558,6 +599,7 @@ function rounding(num,ud){
         return num
     }
 }
+let dodger1=new dodger(GAME_SIZE)
 let canvas = document.getElementById("gamescreen")
 let ctx = canvas.getContext('2d')
 for(var i=0;i<10;i++){
@@ -576,10 +618,12 @@ let borderpoints=[
     {x:0,y:0,z:0}
 ]
 let faces = [
-    [0,3,5],
-    [0,3,6],
-    [5,6,3],
-    [5,6,0]
+    [0,1,3,2],
+    [4,5,7,6],
+    [2,3,7,6],
+    [1,3,7,5],
+    [0,1,5,4],
+    [0,2,6,4]
 ]
 let lastTime = 0
 let loop=0
@@ -596,10 +640,10 @@ function gameloop(timestamp) {
             pixeldepth[i][j]={filled:false,depth:0}
         }
     }
-    Bdraw3D(epicenter3D,borderpoints,faces)
-    // drawbuffer(pixeldepth)
-    rotationfactor+=2
-    tiltfactor+=2
+    dodger1.draw(ctx)
+    // Bdraw3D(borderpoints,faces)
+    rotationfactor+=3
+    tiltfactor+=3
     if(!dead){
         requestAnimationFrame(gameloop)
     }

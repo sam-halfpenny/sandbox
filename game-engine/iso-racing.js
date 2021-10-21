@@ -99,7 +99,7 @@ class dodger{
     constructor(gamesize){
         this.gamesize=gamesize
         this.position={x:G,y:G,z:G}
-        this.size=200
+        this.size=GAME_SIZE/3
         this.speed={
             x:0,
             y:0,
@@ -217,7 +217,7 @@ class dodger{
     }
 }
 const sunang=0
-const ambientlightfactor=1/3
+const ambientlightfactor=1/4
 const lightsourcevector={x:0,y:1,z:0}
 const GAME_SIZE=600
 const G=GAME_SIZE/2
@@ -233,7 +233,7 @@ for(var i=0;i<GAME_SIZE;i++){
 let kill=false
 let dead=false
 let intensity=10
-let perspective=intensity*1000
+let perspective=intensity*GAME_SIZE
 let rotationfactor=10
 let tiltfactor=10
 let spinfactor=90
@@ -487,6 +487,8 @@ function drawline(origin,ang,length){
     }
 }
 function Bdraw3D(points,faces){
+    //functions: iso_map(pndiff3D,add_perspective,rotate3D(rotate_point)),Bdraw(JTD)
+    //externalvariables: epicenter3D,GAME_SIZE,tiltfactor,rotationfactor,spinfactor,perspective,intensity,ctx,pixeldepth
     var isopoints=[]
     var fpoints=[]
     for(var i=0;i<points.length;i++){
@@ -509,6 +511,8 @@ function Bdraw(points){
     JTD(points[points.length-1],points[0])
 }
 function Draw3D(shapecenter,points,faces){
+    //functions: iso_map(pndiff3D,add_perspective,rotate3D(rotate_point)),shader(unit_vector,cross_product,dot_product,letters,basebasher(rounding)),Draw
+    //externalvariables: epicenter3D,GAME_SIZE,tiltfactor,rotationfactor,spinfactor,perspective,intensity,ctx,pixeldepth,lightsourcevector,ambientlightfactor
     var isopoints=[]
     var fpoints=[]
     var rfpoints=[]
@@ -566,7 +570,7 @@ function shader(shpcntr,pnts,counter){
         }
     }
     colorpercent=(dot_product(planevector,lightsourcevector))
-    ambientlight=(dot_product(planevector,lightsourcevector)/2+1)*ambientlightfactor
+    ambientlight=((-dot_product(planevector,lightsourcevector))/2+1)*ambientlightfactor
     if(colorpercent<0){
         colorpercent=0
     }
@@ -669,7 +673,8 @@ function gameloop(timestamp) {
     if(kill){
         ctx.fillStyle='#f00'
     }
-    ctx.clearRect(0,0,600,600);
+    ctx.fillStyle='#111'
+    ctx.fillRect(0,0,GAME_SIZE,GAME_SIZE);
     for(var i=0;i<GAME_SIZE;i++){
         for(var j=0;j<GAME_SIZE;j++){
             pixeldepth[i][j]={filled:false,depth:0}

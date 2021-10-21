@@ -158,9 +158,67 @@ class dodger{
         if(this.position.z>this.gamesize-this.size/2){
             this.position.z=this.gamesize-this.size/2
         }
-        if(detect3D(this.faces,this.points,this.position,{x:G,y:G,z:G})){
-            dead=true
+    }
+}
+function shape2shapecollision(faces1,faces2,points1,points2,center1,center2){
+    //functions: pndiff3D,spheredetection,detect3D(planedetection(cross_product,dot_product))
+    let fpoints1=[]
+    let rad1=0
+    let cvector
+    for(var i=0;i<faces1.length;i++){
+        fpoints1.push([])
+        for(var j=0;j<faces1[i].length;j++){
+            fpoints1[i].push(points1[faces1[i][j]])
+            cvector=pndiff3D(points1[faces1[i][j]],center1)
+            if(cvector>rad1){
+                rad1=Math.sqrt(Math.pow(cvector.x,2)+Math.pow(cvector.y,2)+Math.pow(cvector.z,2))
+            }
         }
+    }
+    let fpoints2=[]
+    let rad2=0
+    for(var i=0;i<faces2.length;i++){
+        fpoints2.push([])
+        for(var j=0;j<faces2[i].length;j++){
+            fpoints2[i].push(points2[faces2[i][j]])
+            cvector=pndiff3D(points2[faces2[i][j]],center2)
+            if(cvector>rad2){
+                rad2=Math.sqrt(Math.pow(cvector.x,2)+Math.pow(cvector.y,2)+Math.pow(cvector.z,2))
+            }
+        }
+    }
+    if(spheredetection(rad1+rad2,center1,center2)){
+        let qtrue12=false
+        for(i=0;i<fpoints1.length;i++){
+            if(detect3D(faces2,points2,center2,fpoints1[i])){
+                qtrue12=true
+            }
+        }
+        let qtrue21=false
+        for(i=0;i<fpoints2.length;i++){
+            if(detect3D(faces1,points1,center1,fpoints2[i])){
+                qtrue21=true
+            }
+        }
+        if(qtrue12||qtrue21){
+            return true
+        }
+        else{
+            return false
+        }
+    }
+    else{
+        return false
+    }
+
+}
+function spheredetection(radius,center,detectpoint){
+    let cvector = pndiff3D(detectpoint,center)
+    if(Math.sqrt(Math.pow(cvector.x,2)+Math.pow(cvector.y,2)+Math.pow(cvector.z,2))<radius){
+        return true
+    }
+    else{
+        return false
     }
 }
 function detect3D(faces,points,center,detectpoint){

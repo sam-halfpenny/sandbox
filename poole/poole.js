@@ -1,5 +1,6 @@
 const screenresolution=2
 const wall_cor=0.7
+let ballstop=true
 class Pots{
     constructor(gameheight,gamewidth,radii,offset){
         this.radii=radii
@@ -47,13 +48,11 @@ class Cue_ball{
         this.cor=0.9
         this.cof=0.01
         this.mass=1
+        this.goes=1
         this.aim={
             angle:180,
             power:5,
-            drawn:{
-                x:true,
-                y:true
-            }
+            drawn:true
         }
         this.fouled=false
     }
@@ -70,7 +69,7 @@ class Cue_ball{
             }
         }
         DrawCircle(this.size,this.position,ctx,screenresolution)
-        if(this.aim.drawn.x && this.aim.drawn.y){
+        if(this.aim.drawn){
             if(this.p1turn){
                 ctx.fillStyle=this.colors.p1
             }
@@ -99,13 +98,20 @@ class Cue_ball{
         this.position.x += this.speed.x;
         this.position.y += this.speed.y;
         this.speed={x:this.speed.x*(1-this.cof),y:this.speed.y*(1-this.cof)}
-        if(this.speed.x<0.1 && this.speed.x>-0.1){
-            this.speed.x=0
-            this.aim.drawn.x=true
+        if(this.goes>0){
+            this.p1turn=true
         }
-        if(this.speed.y<0.1 && this.speed.y>-0.1){
-            this.speed.y=0
-            this.aim.drawn.y=true
+        else{
+            this.p1turn=false
+        }
+        if(!ballstop){
+            this.aim.drawn=false
+        }
+        if(Math.sqrt(Math.pow(this.speed.x,2)+Math.pow(this.speed.y,2))<0.1){
+            this.speed={x:0,y:0}
+            if(ballstop){
+                this.aim.drawn=true
+            }
         }
         if(this.position.x<this.size){
             this.position.x=this.size;
@@ -125,7 +131,7 @@ class Cue_ball{
         }
         if(pots.inPot(this.position)){
             this.fouled=true
-            this.aim.drawn={x:false,y:false}
+            this.aim.drawn=false
             this.position={x:this.gamewidth/2,y:this.gameheight/2}
             this.speed={x:0,y:0}
         }
@@ -144,10 +150,10 @@ class Ball{
         this.cof=0.01
         this.mass=1
         this.dead=false
+        this.stopped=true
     }
     draw(ctx){
         ctx.fillStyle=this.color
-        console.log(this.position)
         DrawCircle(this.size,this.position,ctx,screenresolution)
     }
     update(deltaTime) {
@@ -155,11 +161,12 @@ class Ball{
         this.position.x += this.speed.x;
         this.position.y += this.speed.y;
         this.speed={x:this.speed.x*(1-this.cof),y:this.speed.y*(1-this.cof)}
-        if(this.speed.x<0.1 && this.speed.x>-0.1){
-            this.speed.x=0
+        if(Math.sqrt(Math.pow(this.speed.x,2)+this.speed.y,2)<0.1){
+            this.speed={x:0,y:0}
+            this.stopped=true
         }
-        if(this.speed.y<0.1 && this.speed.y>-0.1){
-            this.speed.y=0
+        else{
+            this.stopped=false
         }
         if(this.position.x<this.size){
             this.position.x=this.size;
@@ -180,17 +187,30 @@ class Ball{
         if(pots.inPot(this.position)){
             this.dead=true
         }
+        // if(CircleDetect(this.position,this.size,cue_ball.position,cue_ball.size)){
+        //     let A=pndiff(cue_ball.position,this.position)
+        //     cue_ball.position={x:this.position.x+unit_vector(A).x*(this.size+cue_ball.size),y:this.position.y+unit_vector(A).y*(this.size+cue_ball.size)}
+        //     let speed1 = recoordinate(this.speed,A)
+        //     let speed2 = recoordinate(cue_ball.speed,A)
+        //     let aspeed1 = {x:OCC(this.mass,cue_ball.mass,speed1.x,speed2.x,this.cor).u1,y:speed1.y}
+        //     let aspeed2 = {x:OCC(this.mass,cue_ball.mass,speed1.x,speed2.x,this.cor).u2,y:speed2.y}
+        //     let Ar={x:A.x,y:-A.y}
+        //     this.speed=recoordinate(aspeed1,Ar)
+        //     cue_ball.speed=recoordinate(aspeed2,Ar)
+        //     console.log(this.position)
+        // }
+    }
+    detectCue(){
         if(CircleDetect(this.position,this.size,cue_ball.position,cue_ball.size)){
-            let A=pndiff(this.position,cue_ball.position)
-            this.position={x:this.position.x+unit_vector(A).x*(this.size+cue_ball.size),y:this.position.y+unit_vector(A).y*(this.size+cue_ball.size)}
+            let A=pndiff(cue_ball.position,this.position)
+            cue_ball.position={x:this.position.x+unit_vector(A).x*(this.size+cue_ball.size),y:this.position.y+unit_vector(A).y*(this.size+cue_ball.size)}
             let speed1 = recoordinate(this.speed,A)
             let speed2 = recoordinate(cue_ball.speed,A)
-            let aspeed1 = {x:OCC(this.mass,cue_ball.mass,speed1.x,speed2.x,this.cor).u2,y:speed1.y}
-            let aspeed2 = {x:OCC(this.mass,cue_ball.mass,speed1.x,speed2.x,this.cor).u1,y:speed2.y}
+            let aspeed1 = {x:OCC(this.mass,cue_ball.mass,speed1.x,speed2.x,this.cor).u1,y:speed1.y}
+            let aspeed2 = {x:OCC(this.mass,cue_ball.mass,speed1.x,speed2.x,this.cor).u2,y:speed2.y}
             let Ar={x:A.x,y:-A.y}
             this.speed=recoordinate(aspeed1,Ar)
             cue_ball.speed=recoordinate(aspeed2,Ar)
-            console.log(this.position)
         }
     }
 }
@@ -232,11 +252,21 @@ class Handler{
                     break
                 case 32:
                     if(!cue_ball.fouled){
-                        if(cue_ball.aim.drawn.x && cue_ball.aim.drawn.y){
+                        if(cue_ball.aim.drawn){
                             cue_ball.speed=angularmov(cue_ball.aim.angle,cue_ball.aim.power)
-                            cue_ball.aim.drawn.x=false
-                            cue_ball.aim.drawn.y=false
-                            cue_ball.p1turn=!cue_ball.p1turn
+                            cue_ball.aim.drawn=false
+                            if(cue_ball.p1turn){
+                                if(cue_ball.goes==1){
+                                    cue_ball.goes-=2
+                                }
+                                cue_ball.goes--
+                            }
+                            else{
+                                if(cue_ball.goes==1){
+                                    cue_ball.goes+=2
+                                }
+                                cue_ball.goes++
+                            }
                         }
                     }
                     else{
@@ -311,7 +341,8 @@ function recoordinate(v,a){
     else{
         let A={
             hat:unit_vector(a),
-            vector:a
+            vector:a,
+            perp:{x:0,y:0}
         }
         let V={
             mag:Math.sqrt(Math.pow(v.x,2)+Math.pow(v.y,2)),
@@ -324,12 +355,12 @@ function recoordinate(v,a){
                 vector:{a:0,ap:0}
             }
         }
+        A.perp={x:-A.hat.y,y:A.hat.x}
         V.a_ap.hat.a=dot_product(A.hat,V.x_y.hat)
-        V.a_ap.hat.ap=Math.sqrt(1-Math.pow(V.a_ap.hat.a,2))
+        V.a_ap.hat.ap=dot_product(A.perp,V.x_y.hat)
         V.a_ap.vector={a:V.a_ap.hat.a*V.mag,ap:V.a_ap.hat.ap*V.mag}
         return {x:V.a_ap.vector.a,y:V.a_ap.vector.ap}
-    }
-    
+    } 
 }
 function dot_product(vector1,vector2){
     return vector1.x*vector2.x+vector1.y*vector2.y
@@ -344,8 +375,8 @@ function unit_vector(a){
 }
 function OCC(m1,m2,v1,v2,E){
     return {
-        u1:((m1*v2-m1*v1+E*m1*v1+E*m2*v2)/(m1*E+m2*E))-(v2-v1)/E,
-        u2:((m1*v2-m1*v1+E*m1*v1+E*m2*v2)/(m1*E+m2*E))
+        u1:(v1*(m1-m2)+2*m2*v2)/(m1+m2),
+        u2:(v2*(m2-m1)+2*m1*v1)/(m2+m1)
     }
 }
 let score=1
@@ -369,16 +400,23 @@ function gameloop(timestamp) {
     ctx.fillStyle='#080'
     ctx.fillRect(0,0,800,600)
     pots.draw(ctx)
-    
+    if(!ball.dead){
+        ball.draw(ctx)
+        ball.update(deltaTime)
+    }
     if(!cue_ball.fouled){
-        if(!ball.dead){
-            ball.draw(ctx)
-            ball.update(deltaTime)
-        }
+        ball.detectCue()
         cue_ball.update(deltaTime);
     }
     else{
         cue_ball.fupdate()
+    }
+    console.log(ballstop)
+    if(ball.stopped){
+        ballstop=true
+    }
+    else{
+        ballstop=false
     }
     cue_ball.draw(ctx);
     requestAnimationFrame(gameloop)

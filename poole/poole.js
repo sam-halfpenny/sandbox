@@ -2,6 +2,14 @@ const screenresolution=2
 const wall_cor=0.7
 let ballstop=true
 let balls=[]
+let playerballred={
+    p1:true,
+    p2:false
+}
+let playerball={
+    p1:'Not Confirmed',
+    p2:'Not Confirmed'
+}
 window.addEventListener("keydown", function(e) {
     // space and arrow keys
     if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
@@ -44,13 +52,15 @@ class Cue_ball{
         this.gameheight=gameheight
         this.gamewidth=gamewidth
         this.size=10
-        this.position={x:this.size,y:this.size}
+        this.position={x:600,y:300}
         this.speed={x:0,y:0}
         this.p1turn=true
+        this.wasp1turn=true
         this.colors={
-            p1:'#ff0',
-            p2:'#0ff'
+            p1:'#0ff',
+            p2:'#f0f'
         }
+        this.firsthit='none'
         this.maxSpeed=10
         this.cor=0.9
         this.cof=0.01
@@ -108,8 +118,38 @@ class Cue_ball{
         if(!ballstop){
             this.aim.drawn=false
         }
-        console.log(this.goes)
         if(Math.sqrt(Math.pow(this.speed.x,2)+Math.pow(this.speed.y,2))<0.1){
+            if(Math.sqrt(Math.pow(this.speed.x,2)+Math.pow(this.speed.y,2))>0){
+                console.log(this.firsthit)
+                if(this.wasp1turn){
+                    if(playerballred.p1){
+                        if(this.firsthit=='#ff0' || this.firsthit=='none'){
+                            this.goes=2
+                            this.p1turn=!this.wasp1turn
+                        }
+                    }
+                    else{
+                        if(this.firsthit=='#f00' || this.firsthit=='none'){
+                            this.goes=2
+                            this.p1turn=!this.wasp1turn
+                        }
+                    }
+                }
+                else{
+                    if(playerballred.p2){
+                        if(this.firsthit=='#ff0' || this.firsthit=='none'){
+                            this.goes=2
+                            this.p1turn=!this.wasp1turn
+                        }
+                    }
+                    else{
+                        if(this.firsthit=='#f00' || this.firsthit=='none'){
+                            this.goes=2
+                            this.p1turn=!this.wasp1turn
+                        }
+                    }
+                }
+            }
             this.speed={x:0,y:0}
             if(ballstop){
                 this.aim.drawn=true
@@ -155,10 +195,14 @@ class Ball{
         this.mass=1
         this.dead=false
         this.stopped=true
-        
+        if(this.color=='#f00'){
+            this.red=true
+        }
+        else{
+            this.red=false
+        }
     }
     draw(ctx){
-        console.log(pos)
         ctx.fillStyle=this.color
         DrawCircle(this.size,this.position,ctx,screenresolution)
     }
@@ -192,12 +236,29 @@ class Ball{
         }
         if(pots.inPot(this.position)){
             this.dead=true
+            if(cue_ball.wasp1turn){
+                if(this.red=playerballred.p1){
+                    cue_ball.p1turn=true//extra go
+                }
+                else{
+                    cue_ball.goes=2//fouled
+                }
+            }
+            else{
+                if(this.red=playerballred.p2){
+                    cue_ball.p1turn=true//extra go
+                }
+                else{
+                    cue_ball.goes=2//fouled
+                }
+            }
         }
         balls.forEach(ball=>{
             if(this.identifier!=ball.identifier){
                 if(CircleDetect(this.position,this.size,ball.position,ball.size)){
+                    let reversepos=reverse(ball.position,ball.size,this.position,this.size,ball.speed)
+                    ball.position=reversepos
                     let A=pndiff(ball.position,this.position)
-                    ball.position={x:this.position.x+unit_vector(A).x*(this.size+ball.size),y:this.position.y+unit_vector(A).y*(this.size+ball.size)}
                     let speed1 = recoordinate(this.speed,A)
                     let speed2 = recoordinate(ball.speed,A)
                     let aspeed1 = {x:OCC(this.mass,ball.mass,speed1.x,speed2.x,this.cor).u1,y:speed1.y}
@@ -221,11 +282,14 @@ class Ball{
             let Ar={x:A.x,y:-A.y}
             this.speed=recoordinate(aspeed1,Ar)
             cue_ball.speed=recoordinate(aspeed2,Ar)
+            if(cue_ball.firsthit=='none'){
+                cue_ball.firsthit=this.color
+            }
         }
     }
 }
 class Handler{
-    constructor() {
+    constructor(){
         document.addEventListener("keydown", event=> {
             switch (event.keyCode) {
                 case 37:
@@ -265,6 +329,8 @@ class Handler{
                         if(cue_ball.aim.drawn){
                             cue_ball.speed=angularmov(cue_ball.aim.angle,cue_ball.aim.power)
                             cue_ball.aim.drawn=false
+                            cue_ball.firsthit='none'
+                            cue_ball.wasp1turn=cue_ball.p1turn
                             if(cue_ball.goes==1){
                                 cue_ball.p1turn=!cue_ball.p1turn
                             }
@@ -284,6 +350,9 @@ class Handler{
 }
 function reverse(pos1,rad1,pos2,rad2,speed){
     let Speed=unit_vector(speed)
+    if(speed.x==0 && speed.y==0){
+        return pos1
+    }
     let newpos1={x:pos1.x-Speed.x,y:pos1.y-Speed.y}
     if(CircleDetect(newpos1,rad1,pos2,rad2)){
         return reverse(newpos1,rad1,pos2,rad2,speed)
@@ -380,6 +449,9 @@ function dot_product(vector1,vector2){
     return vector1.x*vector2.x+vector1.y*vector2.y
 }
 function unit_vector(a){
+    if(a=={x:0,y:0}){
+        return {x:0,y:0}
+    }
     let a_mag=Math.sqrt(Math.pow(a.x,2)+Math.pow(a.y,2))
     let a_hat={
         x:a.x/a_mag,
@@ -400,8 +472,11 @@ let ctx = canvas.getContext('2d')
 const GAME_WIDTH=800
 const GAME_HEIGHT=600
 pots = new Pots(GAME_HEIGHT,GAME_WIDTH,20,5)
-for(var i=0;i<1;i++){
-    balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,'#f00',{x:300-20*i,y:300},i))
+for(var i=0;i<3;i++){
+    balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,'#f00',{x:300-21*i,y:289},i))
+}
+for(var i=0;i<3;i++){
+    balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,'#ff0',{x:300-20*i,y:311},i+3))
 }
 cue_ball = new Cue_ball(GAME_WIDTH,GAME_HEIGHT)
 new Handler(cue_ball);
@@ -438,7 +513,20 @@ function gameloop(timestamp) {
     else{
         cue_ball.fupdate()
     }
-    
+    if(playerballred.p1){
+        playerball.p1='Red'
+    }
+    else{
+        playerball.p1='Yellow'
+    }
+    if(playerballred.p2){
+        playerball.p2='Red'
+    }
+    else{
+        playerball.p2='Yellow'
+    }
+    document.getElementById('goes').textContent='number of goes = '+cue_ball.goes
+    document.getElementById('playerballs').textContent='player1(cyan) is '+playerball.p1+'; player2(magenta) is '+playerball.p2
     cue_ball.draw(ctx);
     requestAnimationFrame(gameloop)
 }

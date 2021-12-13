@@ -3,12 +3,19 @@ const wall_cor=0.7
 let ballstop=true
 let balls=[]
 let playerballred={
-    p1:true,
-    p2:false
+    p1:'nc',
+    p2:'nc'
 }
 let playerball={
     p1:'Not Confirmed',
     p2:'Not Confirmed'
+}
+let EGcolor
+let dead = false
+function ENDGAME(color){
+    ctx.clearRect(0,0,800,600)
+    ctx.fillStyle = color
+    ctx.fillRect(0,0,800,600)
 }
 window.addEventListener("keydown", function(e) {
     // space and arrow keys
@@ -72,6 +79,10 @@ class Cue_ball{
             drawn:true
         }
         this.fouled=false
+        this.onblack={
+            p1:false,
+            p2:false
+        }
     }
     draw(ctx){
         if(!this.fouled){
@@ -118,32 +129,100 @@ class Cue_ball{
         if(!ballstop){
             this.aim.drawn=false
         }
+        if(this.p1turn){
+            if(playerballred.p1){
+                this.onblack.p1=true
+                for(var i=0;i<7;i++){
+                    if(!balls[i].dead){
+                        this.onblack.p1=false
+                    }
+                }
+            }
+            else{
+                this.onblack.p1=true
+                for(var i=7;i<14;i++){
+                    if(!balls[i].dead){
+                        this.onblack.p1=false
+                    }
+                }
+            }
+        }
+        else{
+            if(playerballred.p2){
+                this.onblack.p2=true
+                for(var i=0;i<7;i++){
+                    if(!balls[i].dead){
+                        this.onblack.p2=false
+                    }
+                }
+            }
+            else{
+                this.onblack.p2=true
+                for(var i=7;i<14;i++){
+                    if(!balls[i].dead){
+                        this.onblack.p2=false
+                    }
+                }
+            }
+        }
         if(Math.sqrt(Math.pow(this.speed.x,2)+Math.pow(this.speed.y,2))<0.1){
             if(Math.sqrt(Math.pow(this.speed.x,2)+Math.pow(this.speed.y,2))>0){
                 console.log(this.firsthit)
-                if(this.wasp1turn){
-                    if(playerballred.p1){
-                        if(this.firsthit=='#ff0' || this.firsthit=='none'){
-                            this.goes=2
-                            this.p1turn=!this.wasp1turn
+                if(playerballred.p1!='nc'){
+                    if(this.wasp1turn){
+                        if(playerballred.p1){
+                            if(this.firsthit=='#ff0' || this.firsthit=='none'){
+                                this.goes=2
+                                this.p1turn=!this.wasp1turn
+                            }
+                            else if(this.firsthit=='#000' && this.onblack.p1!=true){
+                                this.goes=2
+                                this.p1turn=!this.wasp1turn
+                            }
+                        }
+                        else{
+                            if(this.firsthit=='#f00' || this.firsthit=='none'){
+                                this.goes=2
+                                this.p1turn=!this.wasp1turn
+                            }
+                            else if(this.firsthit=='#000' && this.onblack.p1!=true){
+                                this.goes=2
+                                this.p1turn=!this.wasp1turn
+                            }
                         }
                     }
                     else{
-                        if(this.firsthit=='#f00' || this.firsthit=='none'){
-                            this.goes=2
-                            this.p1turn=!this.wasp1turn
+                        if(playerballred.p2){
+                            if(this.firsthit=='#ff0' || this.firsthit=='none'){
+                                this.goes=2
+                                this.p1turn=!this.wasp1turn
+                            }
+                            else if(this.firsthit=='#000' && this.onblack.p2!=true){
+                                this.goes=2
+                                this.p1turn=!this.wasp1turn
+                            }
+                        }
+                        else{
+                            if(this.firsthit=='#f00' || this.firsthit=='none'){
+                                this.goes=2
+                                this.p1turn=!this.wasp1turn
+                            }
+                            else if(this.firsthit=='#000' && this.onblack.p2!=true){
+                                this.goes=2
+                                this.p1turn=!this.wasp1turn
+                            }
                         }
                     }
                 }
                 else{
-                    if(playerballred.p2){
-                        if(this.firsthit=='#ff0' || this.firsthit=='none'){
+                    if(this.wasp1turn){
+                        if(this.firsthit=='#000' && this.onblack.p1!=true){
                             this.goes=2
                             this.p1turn=!this.wasp1turn
                         }
                     }
                     else{
-                        if(this.firsthit=='#f00' || this.firsthit=='none'){
+                        if(this.firsthit=='#000' && this.onblack.p2!=true){
                             this.goes=2
                             this.p1turn=!this.wasp1turn
                         }
@@ -198,8 +277,11 @@ class Ball{
         if(this.color=='#f00'){
             this.red=true
         }
-        else{
+        else if(this.color==false){
             this.red=false
+        }
+        else{
+            this.red='b'
         }
     }
     draw(ctx){
@@ -236,44 +318,126 @@ class Ball{
         }
         if(pots.inPot(this.position)){
             this.dead=true
-            if(cue_ball.wasp1turn){
-                if(this.red=playerballred.p1){
-                    cue_ball.p1turn=true//extra go
+            if(playerballred.p1!='nc'){
+                if(cue_ball.wasp1turn){
+                    if(this.red==playerballred.p1){
+                        cue_ball.p1turn=true//extra go
+                        cue_ball.goes=1
+                    }
+                    else if(this.red==false){
+                        cue_ball.p1turn=false
+                        cue_ball.goes=2//fouled
+                    }
+                    else{
+                        if(cue_ball.onblack.p1){
+                            dead=true
+                            EGcolor='#0ff'
+                        }
+                        else{
+                            dead=true
+                            EGcolor='#f0f'
+                        }
+                    }
                 }
                 else{
-                    cue_ball.goes=2//fouled
+                    if(this.red==playerballred.p2){
+                        cue_ball.p1turn=false//extra go
+                        cue_ball.goes=1
+                    }
+                    else if(this.red==false){
+                        cue_ball.p1turn=true
+                        cue_ball.goes=2//fouled
+                    }
+                    else{
+                        if(cue_ball.onblack.p2){
+                            dead=true
+                            EGcolor='#0ff'
+                        }
+                        else{
+                            dead=true
+                            EGcolor='#f0f'
+                        }
+                    }
                 }
             }
             else{
-                if(this.red=playerballred.p2){
-                    cue_ball.p1turn=true//extra go
+                if(this.color=='#f00'){
+                    if(cue_ball.wasp1turn){
+                        playerballred.p1=true
+                        playerballred.p2=false
+                        cue_ball.p1turn=true
+                    }
+                    else{
+                        playerballred.p1=false
+                        playerballred.p2=true
+                        cue_ball.p1turn=false
+                    }
+                }
+                else if(this.color=='#ff0'){
+                    if(cue_ball.wasp1turn){
+                        playerballred.p1=false
+                        playerballred.p2=true
+                        cue_ball.p1turn=true
+                    }
+                    else{
+                        playerballred.p1=true
+                        playerballred.p2=false
+                        cue_ball.p1turn=false
+                    }
                 }
                 else{
-                    cue_ball.goes=2//fouled
+                    if(cue_ball.wasp1turn){
+                        dead=true
+                        EGcolor='#f0f'
+                    }
+                    else{
+                        dead=true
+                        EGcolor='#ff0'
+                    }
                 }
             }
         }
         balls.forEach(ball=>{
-            if(this.identifier!=ball.identifier){
-                if(CircleDetect(this.position,this.size,ball.position,ball.size)){
-                    let reversepos=reverse(ball.position,ball.size,this.position,this.size,ball.speed)
-                    ball.position=reversepos
-                    let A=pndiff(ball.position,this.position)
-                    let speed1 = recoordinate(this.speed,A)
-                    let speed2 = recoordinate(ball.speed,A)
-                    let aspeed1 = {x:OCC(this.mass,ball.mass,speed1.x,speed2.x,this.cor).u1,y:speed1.y}
-                    let aspeed2 = {x:OCC(this.mass,ball.mass,speed1.x,speed2.x,this.cor).u2,y:speed2.y}
-                    let Ar={x:A.x,y:-A.y}
-                    this.speed=recoordinate(aspeed1,Ar)
-                    ball.speed=recoordinate(aspeed2,Ar)
+            if(!ball.dead){
+                if(this.identifier!=ball.identifier){
+                    if(CircleDetect(this.position,this.size,ball.position,ball.size)){
+                        let magb = Math.sqrt(Math.pow(ball.speed.x,2)+Math.pow(ball.speed.y,2))
+                        let magt = Math.sqrt(Math.pow(this.speed.x,2)+Math.pow(this.speed.y,2))
+                        if(magb>magt){
+                            let reversepos=reverse(ball.position,ball.size,this.position,this.size,ball.speed)
+                            ball.position=reversepos
+                        }
+                        else{
+                            let reversepos=reverse(this.position,this.size,ball.position,ball.size,this.speed)
+                            this.position=reversepos
+                        }
+                        let A=pndiff(ball.position,this.position)
+                        let speed1 = recoordinate(this.speed,A)
+                        let speed2 = recoordinate(ball.speed,A)
+                        let aspeed1 = {x:OCC(this.mass,ball.mass,speed1.x,speed2.x,this.cor).u1,y:speed1.y}
+                        let aspeed2 = {x:OCC(this.mass,ball.mass,speed1.x,speed2.x,this.cor).u2,y:speed2.y}
+                        let Ar={x:A.x,y:-A.y}
+                        this.speed=recoordinate(aspeed1,Ar)
+                        ball.speed=recoordinate(aspeed2,Ar)
+                    }
                 }
             }
+            
         })
         
     }
     detectCue(){
         if(CircleDetect(this.position,this.size,cue_ball.position,cue_ball.size)){
-            cue_ball.position=reverse(cue_ball.position,cue_ball.size,this.position,this.size,cue_ball.speed)
+            let magb = Math.sqrt(Math.pow(cue_ball.speed.x,2)+Math.pow(cue_ball.speed.y,2))
+            let magt = Math.sqrt(Math.pow(this.speed.x,2)+Math.pow(this.speed.y,2))
+            if(magb>magt){
+                let reversepos=reverse(cue_ball.position,cue_ball.size,this.position,this.size,cue_ball.speed)
+                cue_ball.position=reversepos
+            }
+            else{
+                let reversepos=reverse(this.position,this.size,cue_ball.position,cue_ball.size,this.speed)
+                this.position=reversepos
+            }
             let A=pndiff(cue_ball.position,this.position)
             let speed1 = recoordinate(this.speed,A)
             let speed2 = recoordinate(cue_ball.speed,A)
@@ -351,13 +515,18 @@ class Handler{
 function reverse(pos1,rad1,pos2,rad2,speed){
     let Speed=unit_vector(speed)
     if(speed.x==0 && speed.y==0){
-        return pos1
+        let sur=rad1+rad2+1
+        let dvector=unit_vector(pndiff(pos1,pos2))
+        console.log(CircleDetect({x:pos2.x+dvector.x*sur,y:pos2.y+dvector.y*sur},rad1,pos2,rad2))
+        return {x:pos2.x+dvector.x*sur,y:pos2.y+dvector.y*sur}
     }
     let newpos1={x:pos1.x-Speed.x,y:pos1.y-Speed.y}
+    console.log(newpos1,Speed)
     if(CircleDetect(newpos1,rad1,pos2,rad2)){
         return reverse(newpos1,rad1,pos2,rad2,speed)
     }
     else{
+        console.log(CircleDetect(newpos1,rad1,pos2,rad2))
         return newpos1
     }
 }
@@ -416,6 +585,7 @@ function CircleDetect(p1,r1,p2,r2){
     if(distscalar<=sr){
         return true
     }
+    return false
 }
 function recoordinate(v,a){
     if(v.x==0 && v.y==0){
@@ -472,12 +642,31 @@ let ctx = canvas.getContext('2d')
 const GAME_WIDTH=800
 const GAME_HEIGHT=600
 pots = new Pots(GAME_HEIGHT,GAME_WIDTH,20,5)
-for(var i=0;i<3;i++){
+for(var i=0;i<7;i++){
     balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,'#f00',{x:300-21*i,y:289},i))
 }
-for(var i=0;i<3;i++){
-    balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,'#ff0',{x:300-20*i,y:311},i+3))
+for(var i=0;i<7;i++){
+    balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,'#ff0',{x:300-20*i,y:311},i+7))
 }
+balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,'#000',{x:300-20*i,y:311},14))
+let r3=Math.sqrt(3)/2
+let gap=3  
+let dbb = balls[0].size*2+gap
+balls[0].position={x:300,y:300}
+balls[1].position={x:300-dbb*r3,y:300+dbb/2}
+balls[2].position={x:300-dbb*r3*2,y:300-dbb}
+balls[3].position={x:300-dbb*r3*3,y:300-dbb/2}
+balls[4].position={x:300-dbb*r3*3,y:300+3*dbb/2}
+balls[5].position={x:300-dbb*r3*4,y:300-2*dbb}
+balls[6].position={x:300-dbb*r3*4,y:300}
+balls[7].position={x:300-dbb*r3,y:300-dbb/2}
+balls[8].position={x:300-dbb*r3*2,y:300+dbb}
+balls[9].position={x:300-dbb*r3*3,y:300-3*dbb/2}
+balls[10].position={x:300-dbb*r3*3,y:300+dbb/2}
+balls[11].position={x:300-dbb*r3*4,y:300-dbb}
+balls[12].position={x:300-dbb*r3*4,y:300+dbb}
+balls[13].position={x:300-dbb*r3*4,y:300+2*dbb}
+balls[14].position={x:300-dbb*r3*2,y:300}
 cue_ball = new Cue_ball(GAME_WIDTH,GAME_HEIGHT)
 new Handler(cue_ball);
 
@@ -496,6 +685,10 @@ function gameloop(timestamp) {
         if(!ball.dead){
             ball.draw(ctx)
             ball.update(deltaTime)
+            if(!cue_ball.fouled){
+                ball.detectCue()
+            }
+            
         }
         else{
             ball.stopped=true
@@ -503,9 +696,7 @@ function gameloop(timestamp) {
         if(!ball.stopped){
             ballstop=false
         }
-        if(!cue_ball.fouled){
-            ball.detectCue()
-        }
+        
     })
     if(!cue_ball.fouled){
         cue_ball.update(deltaTime);
@@ -513,21 +704,32 @@ function gameloop(timestamp) {
     else{
         cue_ball.fupdate()
     }
-    if(playerballred.p1){
+    if(playerballred.p1==true){
         playerball.p1='Red'
     }
-    else{
+    else if(playerballred.p1==false){
         playerball.p1='Yellow'
     }
-    if(playerballred.p2){
+    else{
+        playerball.p1='Not Confirmed'
+    }
+    if(playerballred.p2==true){
         playerball.p2='Red'
     }
-    else{
+    else if(playerballred.p2==false){
         playerball.p2='Yellow'
+    }
+    else{
+        playerball.p2='Not Confirmed'
     }
     document.getElementById('goes').textContent='number of goes = '+cue_ball.goes
     document.getElementById('playerballs').textContent='player1(cyan) is '+playerball.p1+'; player2(magenta) is '+playerball.p2
     cue_ball.draw(ctx);
-    requestAnimationFrame(gameloop)
+    if(!dead){
+        requestAnimationFrame(gameloop)
+    }
+    else{
+        ENDGAME(EGcolor)
+    }
 }
 requestAnimationFrame(gameloop)

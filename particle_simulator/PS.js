@@ -94,7 +94,6 @@ function reverse1(pos1,rad1,speed1,pos2,rad2,speed2){
             y:speed2.y/mag1
         }
     }
-    console.log(Speed1,Speed2)
     let newpos1={x:pos1.x-Speed1.x,y:pos1.y-Speed1.y}
     let newpos2={x:pos2.x-Speed2.x,y:pos2.y-Speed2.y}
     if(CircleDetect(newpos1,rad1,pos2,rad2)){
@@ -196,11 +195,11 @@ let ctx = canvas.getContext('2d')
 
 const GAME_WIDTH=800
 const GAME_HEIGHT=600
-for(var i=0;i<5;i++){
+for(var i=0;i<9;i++){
     balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:600-50*i,y:289},i,5,1))
 }
-for(var i=0;i<5;i++){
-    balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:700-60*i,y:311},i+5,5,1))
+for(var i=0;i<9;i++){
+    balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:700-60*i,y:311},i+9,5,1))
 }
 balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:300-20*i,y:311},19,20,16))
 let lastTime = 0
@@ -210,9 +209,12 @@ function gameloop(timestamp) {
     lastTime = timestamp;
     ctx.clearRect(0,0,800,600);
     balls.forEach(ball=>{
-        ball.draw(ctx)
         ball.update(deltaTime)
+        if(document.getElementById('togBtn').checked){
+            ball.draw(ctx)
+        }
     })
+    balls[18].draw(ctx)
     requestAnimationFrame(gameloop)
 }
 requestAnimationFrame(gameloop)

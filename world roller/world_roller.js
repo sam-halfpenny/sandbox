@@ -1,5 +1,4 @@
 const sunang=0
-const data = require('./contour_data.json')
 const ambientlightfactor=1/4
 const lightsourcevector={x:0,y:1,z:0}
 const GAME_SIZE=600
@@ -12,25 +11,21 @@ window.addEventListener("keydown", function(e) {
         e.preventDefault();
     }
 }, false);
+const Nopoints=100
+const oscillation_frequency=2
 const landscale=1
-const landscapedata=[
-    [1,0,1,2,1,0,1,1,0,2,4,3,2,1,0],
-    [0,1,2,3,2,0,0,1,1,3,3,4,3,2,3],
-    [1,0,1,2,1,0,1,1,0,2,4,3,2,1,0],
-    [0,1,2,3,2,0,0,1,1,3,3,4,3,2,3],
-    [1,0,1,2,1,0,1,1,0,2,4,3,2,1,0],
-    [0,1,2,3,2,0,0,1,1,3,3,4,3,2,3],
-    [1,0,1,2,1,0,1,1,0,2,4,3,2,1,0],
-    [0,1,2,3,2,0,0,1,1,3,3,4,3,2,3],
-    [1,0,1,2,1,0,1,1,0,2,4,3,2,1,0],
-    [0,1,2,3,2,0,0,1,1,3,3,4,3,2,3],
-    [1,0,1,2,1,0,1,1,0,2,4,3,2,1,0],
-    [0,1,2,3,2,0,0,1,1,3,3,4,3,2,3],
-    [1,0,1,2,1,0,1,1,0,2,4,3,2,1,0],
-    [0,1,2,3,2,0,0,1,1,3,3,4,3,2,3],
-    [1,0,1,2,1,0,1,1,0,2,4,3,2,1,0]
-]
-const resolution=GAME_SIZE/landscapedata.length
+const heightflux=Nopoints/10
+const zero=heightflux*2
+const landscapedata=[]
+let deltaang=oscillation_frequency*2*Math.PI/Nopoints
+let deltaang2=oscillation_frequency*2*Math.PI/Nopoints
+for(var i=0;i<Nopoints;i++){
+    landscapedata.push([])
+    for(var j=0;j<Nopoints;j++){
+        landscapedata[i].push(zero+heightflux*(Math.cos(i*deltaang)+Math.cos(j*deltaang2)))
+    }
+}
+const resolution=GAME_SIZE/(Nopoints)
 class landscape{
     constructor(contourdata,resolution,landscale){
         this.points=[]
@@ -49,8 +44,8 @@ class landscape{
         this.pseudoposition={x:G,y:G,z:5*G}
     }
     draw(){
-        Bdraw3D(this.points,this.faces)
-        Draw3Dns(this.pseudoposition,this.points,this.faces)
+        // Bdraw3D(this.points,this.faces)
+        Draw3D(this.pseudoposition,this.points,this.faces)
     }
     
 }
@@ -63,10 +58,16 @@ class Handler{
                     dead=true
                     break
                 case 38:
-                    intensity+=10
+                    rotation3D.x++
                     break
                 case 40:
-                    intensity-=10
+                    rotation3D.x--
+                    break
+                case 37:
+                    rotation3D.y--
+                    break
+                case 39:
+                    rotation3D.y++
                     break
             }
         });
@@ -83,7 +84,7 @@ for(var i=0;i<GAME_SIZE;i++){
 const AOG=89.9
 let kill=false
 let dead=false
-let intensity=6*G
+let intensity=2.5*G
 let rotation3D={
     x:-60,
     y:0,
@@ -142,6 +143,7 @@ function add_perspective(point,camdist,aog){
     return npoint
 }
 function Draw(points){
+    Bdraw(points)
     let hp=0
     let lp=0
     let mp=0
@@ -216,12 +218,14 @@ function Draw(points){
         lindifflr=pndiff3D(rightpoints[i],leftpoints[i])
         dvectorlr=lindifflr.z/lindifflr.x
         // ctx.fillRect(Math.floor(leftpoints[i].x),Math.floor(leftpoints[i].y),leftpoints[i].x-leftpoints[i].x,1)
-        for(var j=0;j<lindifflr.x;j++){
-            if(pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)].depth>leftpoints[i].z+dvectorlr*j || pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)].filled==false){
-                //console.log(leftpoints[i].z+dvectorlr*j)
-                values={filled:true,depth:leftpoints[i].z+dvectorlr*j}
-                pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)]=values
-                ctx.fillRect(Math.floor(leftpoints[i].x)+j,Math.floor(leftpoints[i].y),1,1)
+        for(var j=0;j<=lindifflr.x+1;j++){
+            values={filled:true,depth:leftpoints[i].z+dvectorlr*j}
+            if(Math.floor(leftpoints[i].x)+j<GAME_SIZE && Math.floor(leftpoints[i].y)<GAME_SIZE && Math.floor(leftpoints[i].x)+j>0 && Math.floor(leftpoints[i].y)>0 && values.depth>0){
+                if(pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)].depth>leftpoints[i].z+dvectorlr*j || pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)].filled==false){
+                    //console.log(leftpoints[i].z+dvectorlr*j)
+                    pixeldepth[Math.floor(leftpoints[i].x)+j][Math.floor(leftpoints[i].y)]=values
+                    ctx.fillRect(Math.floor(leftpoints[i].x)+j,Math.floor(leftpoints[i].y),1,1)
+                }
             }
         }
     }
@@ -235,7 +239,6 @@ function pndiff3D(p1,p2){
     return dist
 }
 function JTD(p1,p2){
-    ctx.fillStyle='#0f0'
     let hp
     let lp
     if(p1.y<p2.y){
@@ -250,14 +253,17 @@ function JTD(p1,p2){
     let vectorhl=lindiffhl.x/lindiffhl.y
     let dvectorhl=lindiffhl.z/lindiffhl.y
     for(var i=0;i<lindiffhl.y;i++){
-        if(pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)].depth>i*dvectorhl+hp.z || pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)].filled==false){
-            values={filled:true,depth:hp.z+dvectorhl*i}
-            pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)]=values
-            if(i==lindiffhl.y-1){
-                ctx.fillRect(Math.floor(i*vectorhl)+hp.x,hp.y+i,2,2)
-            }
-            else{
-                ctx.fillRect(Math.floor(i*vectorhl)+hp.x,hp.y+i,2,2)
+        values={filled:true,depth:hp.z+dvectorhl*i}
+        if(Math.floor(i*vectorhl+hp.x)<GAME_SIZE && Math.floor(i+hp.y)<GAME_SIZE && Math.floor(i*vectorhl+hp.x)>0 && Math.floor(i+hp.y)>0 && values.depth>0){
+            if(pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)].depth>i*dvectorhl+hp.z || pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)].filled==false){
+                
+                pixeldepth[Math.floor(i*vectorhl+hp.x)][Math.floor(i+hp.y)]=values
+                if(i==lindiffhl.y-1){
+                    ctx.fillRect(Math.floor(i*vectorhl+hp.x),Math.floor(hp.y+i),1,1)
+                }
+                else{
+                    ctx.fillRect(Math.floor(i*vectorhl+hp.x),Math.floor(hp.y+i),1,1)
+                }
             }
         }
     }
@@ -273,11 +279,15 @@ function JTD(p1,p2){
     vectorhl=lindiffhl.y/lindiffhl.x
     dvectorhl=lindiffhl.z/lindiffhl.x
     for(var i=0;i<lindiffhl.x;i++){
-        if(pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)].depth>i*dvectorhl+hp.z || pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)].filled==false){
-            values={filled:true,depth:hp.z+dvectorhl*i}
-            pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)]=values
-            ctx.fillRect(hp.x+i,Math.floor(i*vectorhl)+hp.y,2,2)
+        values={filled:true,depth:hp.z+dvectorhl*i}
+        if(Math.floor(i+hp.x)<GAME_SIZE && Math.floor(i*vectorhl+hp.y)<GAME_SIZE && Math.floor(i+hp.x)>=0 && Math.floor(i*vectorhl+hp.y)>=0 && values.depth>0){
+            if(pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)].depth>i*dvectorhl+hp.z || pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)].filled==false){
+                
+                pixeldepth[Math.floor(i+hp.x)][Math.floor(i*vectorhl+hp.y)]=values
+                ctx.fillRect(Math.floor(hp.x+i),Math.floor(i*vectorhl+hp.y),1,1)
+            }
         }
+        
     }
 }
 function scale_point(point,scale){
@@ -358,9 +368,9 @@ function Bdraw(points){
     }
     JTD(points[points.length-1],points[0])
 }
-function Draw3Dns(shapecenter,points,faces){
+function Draw3D(shapecenter,points,faces){
     //functions: iso_map(pndiff3D,add_perspective,rotate3D(rotate_point)),shader(unit_vector,cross_product,dot_product,letters,basebasher(rounding)),Draw
-    //externalvariables: epicenter3D,GAME_SIZE,rotation3D,perspective,intensity,ctx,pixeldepth,lightsourcevector,ambientlightfactor
+    //externalvariables: epicenter3D,GAME_SIZE,tiltfactor,rotationfactor,spinfactor,perspective,intensity,ctx,pixeldepth,lightsourcevector,ambientlightfactor
     var isopoints=[]
     var fpoints=[]
     var rfpoints=[]
@@ -381,7 +391,7 @@ function Draw3Dns(shapecenter,points,faces){
         //     console.log(colorpercent)
         //     console.log(color)
         // }
-        ctx.fillStyle = '#111'
+        ctx.fillStyle = shader(shapecenter,rfpoints,i)
         Draw(fpoints)
         
     }
@@ -391,7 +401,7 @@ function shader(shpcntr,pnts,counter){
     let isopos
     let relpos
     relpos=pndiff3D(shpcntr,epicenter3D)
-    isopos=add_perspective(rotate3D(relpos,rotation3D),perspective,intensity)
+    isopos=add_perspective(rotate3D(relpos,rotation3D),intensity,AOG)
     shapecenter={
         x:isopos.x+epicenter3D.x,
         y:isopos.y+epicenter3D.y,
@@ -399,7 +409,7 @@ function shader(shpcntr,pnts,counter){
     }
     for(var i=0;i<pnts.length;i++){
         relpos=pndiff3D(pnts[i],epicenter3D)
-        isopos=add_perspective(rotate3D(relpos,rotation3D),perspective,intensity)
+        isopos=add_perspective(rotate3D(relpos,rotation3D),intensity,AOG)
         points.push({
             x:isopos.x+epicenter3D.x,
             y:isopos.y+epicenter3D.y,
@@ -427,7 +437,7 @@ function shader(shpcntr,pnts,counter){
         colorpercent=0.99
     }
     console.log()
-    color=letters(basebasher(Math.floor(colorpercent*Math.pow(15,2)),15,2))
+    color=letters(basebasher(Math.floor(colorpercent*Math.pow(15,2)),16,2))
     return color
 }
 function basebasher(dec,base,dignum){
@@ -524,6 +534,7 @@ function gameloop(timestamp) {
         }
     }
     Landscape.draw(ctx)
+    ctx.fillStyle='#0f0'
     Bdraw3D(borderpoints,faces)
     // rotation3D.y++
     if(!dead){

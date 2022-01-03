@@ -1,6 +1,6 @@
 const sunang=0
-const ambientlightfactor=1/4
-const lightsourcevector={x:0,y:1,z:0}
+const ambientlightfactor=0
+let lightsourcevector={x:0,y:1,z:0}
 const GAME_SIZE=600
 const G=GAME_SIZE/2
 const epicenter={x:G,y:G}
@@ -11,12 +11,15 @@ window.addEventListener("keydown", function(e) {
         e.preventDefault();
     }
 }, false);
-const Nopoints=100
-const oscillation_frequency=2
+const chunksize=100
+const Nopoints=600
+const c2resolution=Nopoints/GAME_SIZE
+const oscillation_frequency=10
 const landscale=1
-const heightflux=Nopoints/10
+const heightflux=60
 const zero=heightflux*2
 const landscapedata=[]
+let startingpoint={x:0,y:0}
 let deltaang=oscillation_frequency*2*Math.PI/Nopoints
 let deltaang2=oscillation_frequency*2*Math.PI/Nopoints
 for(var i=0;i<Nopoints;i++){
@@ -25,26 +28,30 @@ for(var i=0;i<Nopoints;i++){
         landscapedata[i].push(zero+heightflux*(Math.cos(i*deltaang)+Math.cos(j*deltaang2)))
     }
 }
-const resolution=GAME_SIZE/(Nopoints)
+const resolution=GAME_SIZE/(chunksize)
 class landscape{
-    constructor(contourdata,resolution,landscale){
+    constructor(chunksize,resolution){
         this.points=[]
-        for(var i=0;i<contourdata.length;i++){
-            for(var j=0;j<contourdata[i].length;j++){
-                this.points.push({x:i*resolution,y:j*resolution,z:GAME_SIZE-(landscale*contourdata[i][j]*resolution)})
+        for(var i=0;i<chunksize;i++){
+            for(var j=0;j<chunksize;j++){
+                this.points.push({x:i*resolution,y:j*resolution,z:GAME_SIZE/*GAME_SIZE-(landscale*contourdata[i][j]*resolution)*/})
             }
         }
         this.faces=[]
-        for(var i=0;i<contourdata.length*(contourdata.length-1);i++){
-            if(i%contourdata.length<contourdata.length-1){
-                this.faces.push([i,i+1,i+contourdata.length])
-                this.faces.push([i+1,i+contourdata.length,i+contourdata.length+1])
+        for(var i=0;i<chunksize*(chunksize-1);i++){
+            if(i%chunksize<chunksize-1){
+                this.faces.push([i,i+1,i+chunksize])
+                this.faces.push([i+1,i+chunksize,i+chunksize+1])
             }
         }
         this.pseudoposition={x:G,y:G,z:5*G}
     }
-    draw(){
-        // Bdraw3D(this.points,this.faces)
+    draw(contourdata,startingpoint){
+        for(var i=0;i<chunksize;i++){
+            for(var j=0;j<chunksize;j++){
+                this.points[chunksize*i+j].z=GAME_SIZE-contourdata[startingpoint.x+i][startingpoint.y+j]
+            }
+        }
         Draw3D(this.pseudoposition,this.points,this.faces)
     }
     
@@ -58,17 +65,50 @@ class Handler{
                     dead=true
                     break
                 case 38:
-                    rotation3D.x++
-                    break
+                    lightsourcevector=rotate3D(lightsourcevector,{x:-1,y:0,z:0})
+                    break;
                 case 40:
-                    rotation3D.x--
-                    break
+                    lightsourcevector=rotate3D(lightsourcevector,{x:1,y:0,z:0})
+                    break;
                 case 37:
-                    rotation3D.y--
+                    lightsourcevector=rotate3D(lightsourcevector,{x:0,y:1,z:0})
                     break
                 case 39:
-                    rotation3D.y++
+                    lightsourcevector=rotate3D(lightsourcevector,{x:0,y:-1,z:0})
                     break
+                case 87:
+                    rotation3D.x-=1
+                    break;
+                case 83:
+                    rotation3D.x+=1
+                    break;
+                case 65:
+                    rotation3D.y+=1
+                    break
+                case 68:
+                    rotation3D.y-=1
+                    break
+                case 102:
+                    if(startingpoint.y<Nopoints){
+                        startingpoint.x++
+                    }
+                    break;
+                case 100:
+                    if(startingpoint.x>0){
+                        startingpoint.x--
+                    }
+                    break;
+                case 101:
+                    if(startingpoint.x<Nopoints){
+                        startingpoint.y++
+                    }
+                    break
+                case 104:
+                    if(startingpoint.y>0){
+                        startingpoint.x--
+                    }
+                    break
+                
             }
         });
     }
@@ -496,9 +536,20 @@ function rounding(num,ud){
         return num
     }
 }
-let Landscape=new landscape(landscapedata,resolution,landscale)
+function elevationmap(data){
+    for(var i=0;i<Nopoints;i++){
+        for(var j=0;j<Nopoints;j++){
+            color=letters(basebasher(Math.floor((-(data[i][j]-GAME_SIZE)/GAME_SIZE)*Math.pow(16,2)),16,2))
+            ctx2.fillStyle=color
+            ctx2.fillRect(i*c2resolution,j*c2resolution,c2resolution,c2resolution)
+        }
+    }
+}
+let Landscape=new landscape(chunksize,resolution)
 let canvas = document.getElementById("gamescreen")
+let canvas2 = document.getElementById('gamescreen2')
 let ctx = canvas.getContext('2d')
+let ctx2 = canvas2.getContext('2d')
 new Handler();
 let borderpoints=[
     {x:GAME_SIZE,y:GAME_SIZE,z:GAME_SIZE},
@@ -528,12 +579,19 @@ function gameloop(timestamp) {
         ctx.fillStyle='#f00'
     }
     ctx.clearRect(0,0,GAME_SIZE,GAME_SIZE)
+    ctx2.clearRect(0,0,GAME_SIZE,GAME_SIZE)
+    
+    ctx.fillStyle='#111'
+    ctx.fillRect(0,0,GAME_SIZE,GAME_SIZE)
     for(var i=0;i<GAME_SIZE;i++){
         for(var j=0;j<GAME_SIZE;j++){
             pixeldepth[i][j]={filled:false,depth:0}
         }
     }
-    Landscape.draw(ctx)
+    elevationmap(landscapedata)
+    ctx2.fillStyle='#0ff'
+    ctx2.fillRect(startingpoint.x*c2resolution,startingpoint.y*c2resolution,chunksize*c2resolution,chunksize*c2resolution)
+    Landscape.draw(landscapedata,startingpoint)
     ctx.fillStyle='#0f0'
     Bdraw3D(borderpoints,faces)
     // rotation3D.y++

@@ -1,3 +1,4 @@
+//-------------------------------------------------------------------------------------------------ANTICLOCKWISE RULE----------------------------------------------------------------------------------------------------------------------------------
 const sunang=0
 const ambientlightfactor=0
 let lightsourcevector={x:0,y:1,z:0}
@@ -12,20 +13,21 @@ window.addEventListener("keydown", function(e) {
     }
 }, false);
 const chunksize=100
+const landscapedata=[]
+let startingpoint={x:0,y:0}
 const Nopoints=600
-const c2resolution=Nopoints/GAME_SIZE
+const c2resolution=GAME_SIZE/Nopoints
 const oscillation_frequency=10
 const landscale=1
 const heightflux=60
 const zero=heightflux*2
-const landscapedata=[]
-let startingpoint={x:0,y:0}
 let deltaang=oscillation_frequency*2*Math.PI/Nopoints
 let deltaang2=oscillation_frequency*2*Math.PI/Nopoints
+let terr = {x:random_map(Nopoints,GAME_SIZE),y:random_map(Nopoints,GAME_SIZE),crosspos:random_map(Nopoints,GAME_SIZE),crossneg:random_map(Nopoints,GAME_SIZE)}
 for(var i=0;i<Nopoints;i++){
     landscapedata.push([])
     for(var j=0;j<Nopoints;j++){
-        landscapedata[i].push(zero+heightflux*(Math.cos(i*deltaang)+Math.cos(j*deltaang2)))
+        landscapedata[i].push(zero+heightflux*(Math.cos(i*deltaang)+Math.cos(j*deltaang2)+Math.cos(Math.floor((i+j))*deltaang))/2)
     }
 }
 const resolution=GAME_SIZE/(chunksize)
@@ -40,7 +42,7 @@ class landscape{
         this.faces=[]
         for(var i=0;i<chunksize*(chunksize-1);i++){
             if(i%chunksize<chunksize-1){
-                this.faces.push([i,i+1,i+chunksize])
+                this.faces.push([i,i+chunksize,i+1])
                 this.faces.push([i+1,i+chunksize,i+chunksize+1])
             }
         }
@@ -89,7 +91,7 @@ class Handler{
                     rotation3D.y-=1
                     break
                 case 102:
-                    if(startingpoint.y<Nopoints){
+                    if(startingpoint.y<Nopoints-chunksize){
                         startingpoint.x++
                     }
                     break;
@@ -99,13 +101,13 @@ class Handler{
                     }
                     break;
                 case 101:
-                    if(startingpoint.x<Nopoints){
+                    if(startingpoint.x<Nopoints-chunksize){
                         startingpoint.y++
                     }
                     break
                 case 104:
                     if(startingpoint.y>0){
-                        startingpoint.x--
+                        startingpoint.y--
                     }
                     break
                 
@@ -113,7 +115,6 @@ class Handler{
         });
     }
 }
-
 let pixeldepth=[]
 for(var i=0;i<GAME_SIZE;i++){
     pixeldepth.push([])
@@ -129,6 +130,98 @@ let rotation3D={
     x:-60,
     y:0,
     z:0
+}
+function accel_change(pos,accel,r,height){
+    n=0
+    if(height/6<pos && pos<height/2){
+        //console.log("low")
+        switch(r){
+            case 0:
+                n=accel+1
+                break
+            case 1:
+                n=accel
+                break
+            case 2:
+                n=accel-0.3
+                break
+        }
+    }
+    else if(5*height/6>pos && pos>height/2){
+        //console.log("high")
+        switch(r){
+            case 0:
+                n=accel-1
+                break
+            case 1:
+                n=accel
+                break
+            case 2:
+                n=accel+0.3
+                break
+        }
+    }
+    else if(pos>5*height/6){
+        //console.log("VERY HIGH")
+        switch(r){
+            case 0:
+                n=accel-1
+                break
+            case 1:
+                n=accel
+                break
+            case 2:
+                n=accel
+                break
+        }
+    }
+    else if(pos<height/6){
+        //console.log("VERY LOW")
+        switch(r){
+            case 0:
+                n=accel+1
+                break
+            case 1:
+                n=accel
+                break
+            case 2:
+                n=accel
+                break
+        }
+    }
+    else{
+        //console.log("normal")
+        switch(r){
+            case 0:
+                n=accel+1
+                break
+            case 1:
+                n=accel
+                break
+            case 2:
+                n=accel-1
+                break
+        }
+    }
+    if(n>8 || n<-8){
+        n=n/2
+    }
+    return n
+}
+function random_map(length,height){
+    let terr = []
+    levs=height
+    reps=length
+    terr=[Math.floor(Math.random()*(levs/3))+levs/3]
+    accel=0
+    sped=0
+    for(i=1;i<reps;i++){
+        prev=terr[i-1]
+        r=Math.floor(Math.random()*3)
+        sped=accel_change(prev,sped,r,height)
+        terr.push(prev+sped*2)
+    }
+    return terr
 }
 function iso_map(pos){
     let isopos
@@ -408,7 +501,7 @@ function Bdraw(points){
     }
     JTD(points[points.length-1],points[0])
 }
-function Draw3D(shapecenter,points,faces){
+function Draw3D(shapecenter,points,faces,manualoveride){
     //functions: iso_map(pndiff3D,add_perspective,rotate3D(rotate_point)),shader(unit_vector,cross_product,dot_product,letters,basebasher(rounding)),Draw
     //externalvariables: epicenter3D,GAME_SIZE,tiltfactor,rotationfactor,spinfactor,perspective,intensity,ctx,pixeldepth,lightsourcevector,ambientlightfactor
     var isopoints=[]
@@ -431,12 +524,12 @@ function Draw3D(shapecenter,points,faces){
         //     console.log(colorpercent)
         //     console.log(color)
         // }
-        ctx.fillStyle = shader(shapecenter,rfpoints,i)
+        ctx.fillStyle = shader(shapecenter,rfpoints,manualoveride)
         Draw(fpoints)
         
     }
 }
-function shader(shpcntr,pnts,counter){
+function shader(shpcntr,pnts,manualoveride){
     let points=[]
     let isopos
     let relpos
@@ -460,11 +553,13 @@ function shader(shpcntr,pnts,counter){
     let v2=unit_vector(pndiff3D(points[2],points[0]))
     let inner=unit_vector(pndiff3D(shapecenter,points[0]))
     let planevector=unit_vector(cross_product(v1,v2))
-    if(dot_product(planevector,inner)<0){
-        planevector={
-            x:-planevector.x,
-            y:-planevector.y,
-            z:-planevector.z
+    if(!manualoveride){
+        if(dot_product(planevector,inner)<0){
+            planevector={
+                x:-planevector.x,
+                y:-planevector.y,
+                z:-planevector.z
+            }
         }
     }
     colorpercent=(dot_product(planevector,lightsourcevector))

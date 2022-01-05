@@ -51,7 +51,7 @@ class landscape{
     draw(contourdata,startingpoint){
         for(var i=0;i<chunksize;i++){
             for(var j=0;j<chunksize;j++){
-                this.points[chunksize*i+j].z=GAME_SIZE-contourdata[startingpoint.x+i][startingpoint.y+j]
+                this.points[chunksize*i+j].z=GAME_SIZE-contourdata[startingpoint.x+i][startingpoint.y+j]*landscale
             }
         }
         Draw3D(this.pseudoposition,this.points,this.faces)

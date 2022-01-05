@@ -1,6 +1,8 @@
 import imageio
 def lightmeasure(rgb):
-    return rgb[0]+rgb[1]+rgb[2]
+    brightness=int(rgb[0])+int(rgb[1])+int(rgb[2])
+    # print(rgb,' ',brightness)
+    return brightness
 im=imageio.imread('C:/Users/sam05/OneDrive/Desktop/CODE/github-repositorys/sandbox/image/map/eye.jpg')
 prev=lightmeasure(im[0][0])
 nim=[]

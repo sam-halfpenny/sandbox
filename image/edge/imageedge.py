@@ -1,7 +1,8 @@
 import imageio
 def lightmeasure(rgb):
     return rgb[0]+rgb[1]+rgb[2]
-im=imageio.imread('C:/Users/sam05/OneDrive/Desktop/CODE/github-repositorys/sandbox/image/im.png')
+image=input('input the path of the image you want to model (use / not \)')
+im=imageio.imread(image)
 prev=lightmeasure(im[0][0])
 nim=im
 for i in range(len(im)):

@@ -759,8 +759,7 @@ function rounding(num,ud){
         return num
     }
 }
-function drawsphere(pseudoposition,radius){
-    let position=iso_map(pseudoposition)
+function drawsphere(position,radius){
     let degresolution=Math.PI*radius*2
     let angdelta=1/(radius*2)
     for(var i=0;i<degresolution;i++){
@@ -793,11 +792,12 @@ function drawring(position,radius,centerpoint){
         }
         let color=letters(basebasher(Math.floor(colorpercent*Math.pow(15,2)),15,2))
         ctx.fillStyle=color
-        if(pixeldepth[Math.floor(position.x+radius*Math.sin(i*angdelta))][Math.floor(position.y+radius*Math.cos(i*angdelta))].depth>position.z || pixeldepth[Math.floor(position.x+radius*Math.sin(i*angdelta))][Math.floor(position.y+radius*Math.cos(i*angdelta))].filled==false){
+        isoposition=iso_map({x:Math.floor(position.x+radius*Math.sin(i*angdelta)),y:Math.floor(position.y+radius*Math.cos(i*angdelta)),z:position.z})
+        if(pixeldepth[Math.floor(isoposition.x)][Math.floor(isoposition.y)].depth>isoposition.z || pixeldepth[Math.floor(isoposition.x)][Math.floor(isoposition.y)].filled==false){
             //console.log(leftpoints[i].z+dvectorlr*j)
-            values={filled:true,depth:position.z}
-            pixeldepth[Math.floor(position.x+radius*Math.sin(i*angdelta))][Math.floor(position.y+radius*Math.cos(i*angdelta))]=values
-            ctx.fillRect(Math.floor(position.x+radius*Math.sin(i*angdelta)),Math.floor(position.y+radius*Math.cos(i*angdelta)),1,1)
+            values={filled:true,depth:isoposition.z}
+            pixeldepth[Math.floor(isoposition.x)][Math.floor(isoposition.y)]=values
+            ctx.fillRect(Math.floor(isoposition.x),Math.floor(isoposition.y),1,1)
         }
     }
 }

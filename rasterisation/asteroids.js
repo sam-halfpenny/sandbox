@@ -510,6 +510,7 @@ function gameloop(timestamp) {
     dodger1.draw(ctx);
     document.getElementById('score').textContent='score:'+score
     if(!kill){
+        console.log(deltaTime)
         requestAnimationFrame(gameloop)
     }
     else{

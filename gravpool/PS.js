@@ -236,6 +236,7 @@ function rubbersheet(obs,pixels){
                     let Gforce = (ball.mass/dist)*bigG
                     let EMforce = -(ball.charge*2/Math.pow(dist,2))*EM
                     forcevectors.push({x:-unit_vector(dvector).x*(Gforce),y:-unit_vector(dvector).y*(Gforce)})
+                    // forcevectors.push({x:-unit_vector(dvector).x*(EMforce),y:-unit_vector(dvector).y*(EMforce)})
                 }
                 else{
                     cut=true

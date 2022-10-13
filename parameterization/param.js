@@ -5,8 +5,6 @@ window.addEventListener("keydown", function(e) {
     }
 }, false);
 balls=[]
-let sum=0
-let frames=0
 const phi=(1+Math.sqrt(5))/2
 class Handler{
     constructor(dodger) {
@@ -31,200 +29,43 @@ class Handler{
         });
     }
 }
-class ball{
-    constructor(gamesize,speed){
-        this.gamesize=gamesize
-        this.position={x:0,y:0,z:0}
-        this.size=10
-        this.speed=speed
-        this.relpoints=[
-            {x:this.size/2,y:this.size/2,z:this.size/2},
-            {x:-this.size/2,y:this.size/2,z:this.size/2},
-            {x:this.size/2,y:-this.size/2,z:this.size/2},
-            {x:-this.size/2,y:-this.size/2,z:this.size/2},
-            {x:this.size/2,y:this.size/2,z:-this.size/2},
-            {x:-this.size/2,y:this.size/2,z:-this.size/2},
-            {x:this.size/2,y:-this.size/2,z:-this.size/2},
-            {x:-this.size/2,y:-this.size/2,z:-this.size/2},
-        ]
-        this.faces=[
-            [0,1,3,2],
-            [4,5,7,6],
-            [2,3,7,6],
-            [1,3,7,5],
-            [0,1,5,4],
-            [0,2,6,4]
-        ]
-        this.points=[]
-        var i
-        for(i=0;i<this.relpoints.length;i++){
-            this.points.push({x:this.position.x+this.relpoints[i].x,y:this.position.y+this.relpoints[i].y,z:this.position.z+this.relpoints[i].z})
-        }
+function parameterization(x,y,r1,r2){
+    coordinates={
+        x:(r1+r2*Math.cos(y))*Math.cos(x),
+        y:(r1+r2*Math.cos(y))*Math.sin(x),
+        z:r2*Math.sin(y)
     }
-    draw(ctx){
-        Bdraw3D(this.points,this.faces)
-    }
-    update(deltaTime) {
-        this.position.x+=this.speed.x
-        this.position.y+=this.speed.y
-        this.position.z+=this.speed.z
-        for(i=0;i<this.points.length;i++){
-            this.points[i]={x:this.position.x+this.relpoints[i].x,y:this.position.y+this.relpoints[i].y,z:this.position.z+this.relpoints[i].z}
-        }
-        if(this.position.x<this.size/2){
-            this.position.x=this.size/2
-            this.speed.x=-this.speed.x
-        }
-        if(this.position.y<this.size/2){
-            this.position.y=this.size/2
-            this.speed.y=-this.speed.y
-        }
-        if(this.position.z<this.size/2){
-            this.position.z=this.size/2
-            this.speed.z=-this.speed.z
-        }
-        if(this.position.x>this.gamesize-this.size/2){
-            this.position.x=this.gamesize-this.size/2
-            this.speed.x=-this.speed.x
-        }
-        if(this.position.y>this.gamesize-this.size/2){
-            this.position.y=this.gamesize-this.size/2
-            this.speed.y=-this.speed.y
-        }
-        if(this.position.z>this.gamesize-this.size/2){
-            this.position.z=this.gamesize-this.size/2
-            this.speed.z=-this.speed.z
-        }
+    return coordinates
+}
+const GAME_SIZE=600
+const G=GAME_SIZE/2
+let data_coord=[]
+const res=2
+for(var i=0;i<Math.floor(Math.PI*2*res)+1;i++){
+    for(var j=0;j<Math.floor(Math.PI*2*res)+1;j++){
+        data_coord.push([parameterization(i/res,j/res,100,5),parameterization(i/res,(j+1)/res,100,50),parameterization((i+1)/res,j/res,100,50)])
+        data_coord.push([parameterization((i+1)/res,(j+1)/res,100,50),parameterization(i/res,(j+1)/res,100,50),parameterization((i+1)/res,j/res,100,50)])
     }
 }
-class dodger{
-    constructor(gamesize){
-        this.gamesize=gamesize
-        this.position={x:G,y:G,z:G}
-        this.size=GAME_SIZE/3
-        this.speed={
-            x:0,
-            y:0,
-            z:0
-        }
-        this.maxspeed=10
-        this.relpoints=[
-            {x:0,y:this.size,z:this.size*phi},
-            {x:0,y:-this.size,z:this.size*phi},
-            {x:0,y:this.size,z:-this.size*phi},
-            {x:0,y:-this.size,z:-this.size*phi},
-            {x:this.size,y:this.size*phi,z:0},
-            {x:-this.size,y:this.size*phi,z:0},
-            {x:this.size,y:-this.size*phi,z:0},
-            {x:-this.size,y:-this.size*phi,z:0},
-            {x:this.size*phi,y:0,z:this.size},
-            {x:this.size*phi,y:0,z:-this.size},
-            {x:-this.size*phi,y:0,z:this.size},
-            {x:-this.size*phi,y:0,z:-this.size}
-        ]
-        this.faces=[
-            [0,1,8],
-            [0,1,10],
-            [2,3,9],
-            [2,3,11],
-            [8,9,4],
-            [8,9,6],
-            [10,11,5],
-            [10,11,7],
-            [4,5,0],
-            [4,5,2],
-            [6,7,1],
-            [6,7,3],
-            [0,8,4],
-            [1,8,6],
-            [0,10,5],
-            [1,10,7],
-            [2,9,4],
-            [3,9,6],
-            [2,11,5],
-            [3,11,7]
-        ]
-        this.points=[]
-        var i
-        for(i=0;i<this.relpoints.length;i++){
-            this.points.push({x:this.position.x+this.relpoints[i].x,y:this.position.y+this.relpoints[i].y,z:this.position.z+this.relpoints[i].z})
-        }
-        console.log()
-    }
-    draw(ctx){
-        let before=Date.now()
-        Draw3D(this.position,this.points,this.faces)
-        sum+=Date.now()-before
-    }
-    moveLeft(){
-        this.speed.x=-this.maxspeed
-    }
-    moveRight(){
-        this.speed.x=this.maxspeed
-    }
-    moveFwd(){
-        this.speed.y=-this.maxspeed
-    }
-    moveBwd(){
-        this.speed.y=this.maxspeed
-    }
-    moveup(){
-        this.speed.z=-this.maxspeed
-    }
-    movedown(){
-        this.speed.z=this.maxspeed
-    }
-    stopx(){
-        this.speed.x=0;
-    }
-    stopy(){
-        this.speed.y=0
-    }
-    stopz(){
-        this.speed.z=0
-    }
-    update(deltaTime) {
-        this.position.x+=this.speed.x
-        this.position.y+=this.speed.y
-        this.position.z+=this.speed.z
-        for(i=0;i<this.points.length;i++){
-            this.points[i]={x:this.position.x+this.relpoints[i].x,y:this.position.y+this.relpoints[i].y,z:this.position.z+this.relpoints[i].z}
-        }
-        if(this.position.x<this.size/2){
-            this.position.x=this.size/2
-        }
-        if(this.position.y<this.size/2){
-            this.position.y=this.size/2
-        }
-        if(this.position.z<this.size/2){
-            this.position.z=this.size/2
-        }
-        if(this.position.x>this.gamesize-this.size/2){
-            this.position.x=this.gamesize-this.size/2
-        }
-        if(this.position.y>this.gamesize-this.size/2){
-            this.position.y=this.gamesize-this.size/2
-        }
-        if(this.position.z>this.gamesize-this.size/2){
-            this.position.z=this.gamesize-this.size/2
-        }
-        balls.forEach(ball=>{
-            if(this.position.x-this.size/2<ball.position.x && ball.position.x<this.position.x+this.size/2){
-                if(this.position.y-this.size/2<ball.position.y && ball.position.y<this.position.y+this.size/2){
-                    if(this.position.z-this.size/2<ball.position.z && ball.position.z<this.position.z+this.size/2){
-                        kill=true
-                        console.log('hi')
-                    }
-                }
-            }
-        })
-    }
-}
+// let data_coord=[]
+// for(var i=0;i<data_array.length;i++){
+//     data_coord.push([])
+//     for(var j=0;j<data_array[i].length;j++){
+//         data_coord[i].push(array2coord(data_array[i][j]))
+//     }
+// }
+// debugger
+// for(var i=0;i<data_coord.length;i++){
+//     if(data_coord[i].length==0){
+//         data_coord.splice(i,1)
+//     }
+// }
+// console.log(data_coord)
 const sunang=0
 const ambientlightfactor=1/4
 const lightsourcevector={x:0,y:1,z:0}
-const GAME_SIZE=600
-const G=GAME_SIZE/2
+
+
 const epicenter={x:G,y:G}
 const epicenter3D={x:G,y:G,z:G}
 let pixeldepth=[]
@@ -241,6 +82,21 @@ let perspective=intensity*GAME_SIZE
 let rotationfactor=10
 let tiltfactor=10
 let spinfactor=90
+function array2coord(array){
+    let coord={}
+    for(var i=0;i<array.length;i++){
+        key=loopletters(33+i)
+        Object.assign(coord,{temp:array[i]*2})
+        renameKey(coord,'temp',key)
+    }
+    return coord
+}
+function renameKey(obj, old_key, new_key) {   
+    if (old_key !== new_key) {                  
+        Object.defineProperty(obj, new_key,Object.getOwnPropertyDescriptor(obj, old_key));
+        delete obj[old_key];
+    }
+}
 function iso_map(pos){
     let isopos
     let relpos=pndiff3D(pos,epicenter3D)
@@ -381,7 +237,6 @@ function Draw(points){
             }
         }
     }
-    
 }
 function pndiff(p1,p2){
     dist={x:p1.x-p2.x,y:p1.y-p2.y}
@@ -392,7 +247,6 @@ function pndiff3D(p1,p2){
     return dist
 }
 function JTD(p1,p2){
-    ctx.fillStyle='#0f0'
     let hp
     let lp
     if(p1.y<p2.y){
@@ -538,17 +392,23 @@ function Draw3D(shapecenter,points,faces){
         //     console.log(colorpercent)
         //     console.log(color)
         // }
-        shaderinfo=shader(shapecenter,rfpoints,i)
-        ctx.fillStyle=shaderinfo.shade
-        if(shaderinfo.draw){
-            Draw(fpoints)
-        }
-        
+        ctx.fillStyle = shader(shapecenter,rfpoints,false)
+        Draw(fpoints)
     }
 }
-function shader(shpcntr,pnts,counter){
+function extDraw3D(facepoints){
+    var fpoints=[]
+    for(var i=0;i<facepoints.length;i++){
+        fpoints.push([])
+        for(var j=0;j<facepoints[i].length;j++){
+            fpoints[i].push(iso_map(facepoints[i][j]))
+        }
+        ctx.fillStyle = shader(epicenter3D,fpoints[i],true)
+        Draw(fpoints[i])
+    }
+}
+function shader(shpcntr,pnts,manualoveride){
     let points=[]
-    let draw=true
     let isopos
     let relpos
     relpos=pndiff3D(shpcntr,epicenter3D)
@@ -571,18 +431,16 @@ function shader(shpcntr,pnts,counter){
     let v2=unit_vector(pndiff3D(points[2],points[0]))
     let inner=unit_vector(pndiff3D(shapecenter,points[0]))
     let planevector=unit_vector(cross_product(v1,v2))
-    if(dot_product(planevector,inner)<0){
-        planevector={
-            x:-planevector.x,
-            y:-planevector.y,
-            z:-planevector.z
+    if(!manualoveride){
+        if(dot_product(planevector,inner)<0){
+            planevector={
+                x:-planevector.x,
+                y:-planevector.y,
+                z:-planevector.z
+            }
         }
     }
     colorpercent=(dot_product(planevector,lightsourcevector))
-    let vis=(dot_product(planevector,{x:0,y:0,z:1}))
-    if(vis<0){
-        draw=false
-    }
     ambientlight=((-dot_product(planevector,lightsourcevector))/2+1)*ambientlightfactor
     if(colorpercent<0){
         colorpercent=0
@@ -592,8 +450,8 @@ function shader(shpcntr,pnts,counter){
         colorpercent=0.99
     }
     console.log()
-    color=letters(basebasher(Math.floor(colorpercent*Math.pow(15,2)),15,2))
-    return {shade:color,draw:draw}
+    color=letters(basebasher(Math.floor(colorpercent*Math.pow(15,2)),16,2))
+    return color
 }
 function basebasher(dec,base,dignum){
     var digits=[]
@@ -619,6 +477,11 @@ function letters(arr){
         nstr=nstr+alpha[arr[i]]
     }
     return '#'+nstr+nstr+nstr
+}
+function loopletters(num){
+    let alpha="0123456789abcdefghijklmnopqrstuvwxyz"
+    nstr=alpha[num%alpha.length]
+    return nstr
 }
 function dot_product(vector1,vector2){
     return vector1.x*vector2.x+vector1.y*vector2.y+vector1.z*vector2.z
@@ -651,13 +514,8 @@ function rounding(num,ud){
         return num
     }
 }
-let dodger1=new dodger(GAME_SIZE)
 let canvas = document.getElementById("gamescreen")
 let ctx = canvas.getContext('2d')
-for(var i=0;i<10;i++){
-    let nball= new ball(GAME_SIZE,{x:Math.random()*10+5,y:Math.random()*10+5,z:Math.random()*10+5})
-    balls.push(nball)
-}
 new Handler();
 let borderpoints=[
     {x:GAME_SIZE,y:GAME_SIZE,z:GAME_SIZE},
@@ -680,7 +538,6 @@ let faces = [
 let lastTime = 0
 let loop=0
 function gameloop(timestamp) {
-    frames++
     let deltaTime = timestamp - lastTime;
     lastTime = timestamp;
     loop++
@@ -694,16 +551,16 @@ function gameloop(timestamp) {
             pixeldepth[i][j]={filled:false,depth:0}
         }
     }
-    dodger1.draw(ctx)
-    // Bdraw3D(borderpoints,faces)
+    ctx.fillStyle='#0f0'
+    Bdraw3D(borderpoints,faces)
+    extDraw3D(data_coord)
     rotationfactor+=3
     tiltfactor+=3
-    if(!dead && frames<200){
-        // console.log(deltaTime)
+    if(!dead){
         requestAnimationFrame(gameloop)
     }
     else{
-        console.log(sum/frames)
+        console.log('dead')
     }
 }
 requestAnimationFrame(gameloop)

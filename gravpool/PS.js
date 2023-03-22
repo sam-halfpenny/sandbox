@@ -323,16 +323,16 @@ new Handler()
 const GAME_WIDTH=800
 const GAME_HEIGHT=600
 balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:100,y:300},1,10,10,1))
-balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:200,y:400},2,10,10,1))
-balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:300,y:300},3,10,10,1))
-balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:400,y:300},4,10,10,1)) 
-balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:500,y:400},5,10,10,1))
-balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:500,y:300},6,10,10,1))
+// balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:200,y:400},2,10,10,1))
+// balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:300,y:300},3,10,10,1))
+// balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:400,y:300},4,10,10,1)) 
+// balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:500,y:400},5,10,10,1))
+// balls.push(new Ball(GAME_WIDTH,GAME_HEIGHT,{x:500,y:300},6,10,10,1))
 let lastTime = 0
 // balls[2].speed.y+=0.1
-balls[2].speed.y-=0
-balls[1].speed.y-=0.1
-balls[0].speed.y+=0.3
+// balls[2].speed.y-=0
+// balls[1].speed.y-=0.1
+balls[0].speed.x+=0.3
 function gameloop(timestamp) {
     let deltaTime = timestamp - lastTime;
     lastTime = timestamp;
